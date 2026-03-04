@@ -2,8 +2,9 @@
  * TBI Game - Group 10B
  * GBDA 302: Global Digital Project 2 (Winter 2026)
  *
- * - Mechanic 1: Memory Fade (objective disappears; press M to recall briefly)
- * - Mechanic 2: Sensory Overload + Calm Zone (overload rises; recover in calm zone)
+ * Mechanics:
+ * - Memory Fade (objective disappears; press M to recall briefly)
+ * - Sensory Overload + Calm Zone (overload rises; recover in calm zone)
  */
 
 // ==================== GAME STATES ====================
@@ -18,31 +19,52 @@ let gameState = STATE_START;
 const CANVAS_W = 800;
 const CANVAS_H = 600;
 
-// ==================== GAME VARIABLES ====================
-
-// Player
+// ==================== PLAYER ====================
 let playerX = 100;
 let playerY = 300;
 let playerSize = 20;
+let playerSpeed = 3;
 
-// Collectibles (stars/fragments)
+// ==================== COLLECTIBLES ====================
 let stars = [];
 let starsNeeded = 5;
 
-// Mechanic 1: Memory Fade
-let objective = "Collect 5 stars";
+// ==================== MECHANIC 1: MEMORY FADE ====================
+let objective = "";
 let showObjective = true;
-let memoryTimer = 300; // counts down; when it hits 0 objective disappears
+let memoryTimer = 300; // counts down; when hits 0 objective fades (or disappears)
 
-// Mechanic 2: Sensory Overload + Recovery
+// ==================== MECHANIC 2: OVERLOAD + RECOVERY ====================
 let overload = 0;
 let overloadMax = 100;
 
-// Calm zone (recovery area)
+// Calm Zone (recovery area)
 let calmX = 650;
-let calmY = 300;
-let calmSize = 110; // square size
+let calmY = 320;
+let calmSize = 120;
 
+// ==================== LEVEL / CHECKPOINTS ====================
+// Level phases:
+// 0 = tutorial (no overload pressure, objective visible)
+// 1 = memory phase (objective fades, M hint emphasized)
+// 2 = combined (overload active + memory fade)
+let levelPhase = 0;
+
+// Checkpoints: respawn points to help first-time players finish
+let checkpoints = [];
+let checkpointIndex = 0;
+let checkpointJustReached = false;
+let checkpointToastTimer = 0;
+
+// Limited respawns before true Game Over (for fairness)
+let respawnsLeft = 3;
+
+// Small helper: stars collected count
+function starsCollected() {
+  return starsNeeded - stars.length;
+}
+
+// ==================== p5 SETUP/DRAW ====================
 function setup() {
   let canvas = createCanvas(CANVAS_W, CANVAS_H);
   canvas.parent("game-container");
@@ -67,8 +89,7 @@ function draw() {
   }
 }
 
-// ==================== GAME SCREENS ====================
-
+// ==================== SCREENS ====================
 function drawStartScreen() {
   background(30, 30, 60);
 
@@ -93,15 +114,12 @@ function drawStartScreen() {
 function drawPlayScreen() {
   background(40, 40, 80);
 
-  // --- UPDATE GAME LOGIC HERE ---
   updateGame();
-
-  // --- DRAW GAME ELEMENTS HERE ---
   drawLevel();
 
-  // Check win/lose conditions
   checkWinCondition();
-  checkLoseCondition();
+  // Lose condition handled via respawn system (see checkLoseOrRespawn)
+  checkLoseOrRespawn();
 }
 
 function drawWinScreen() {
@@ -110,6 +128,10 @@ function drawWinScreen() {
   fill(255);
   textSize(40);
   text("You Win!", CANVAS_W / 2, CANVAS_H / 3);
+
+  textSize(18);
+  fill(220);
+  text("You collected all stars.", CANVAS_W / 2, CANVAS_H / 3 + 55);
 
   textSize(18);
   fill(200);
@@ -124,119 +146,202 @@ function drawLoseScreen() {
   text("Game Over", CANVAS_W / 2, CANVAS_H / 3);
 
   textSize(18);
-  fill(200);
-  if (overload >= overloadMax) {
-    text("Overload reached maximum.", CANVAS_W / 2, CANVAS_H / 3 + 50);
-  } else {
-    text("Press ENTER to Try Again", CANVAS_W / 2, CANVAS_H * 0.65);
-  }
+  fill(220);
+  text("Overload reached maximum.", CANVAS_W / 2, CANVAS_H / 3 + 55);
 
   textSize(18);
   fill(200);
   text("Press ENTER to Try Again", CANVAS_W / 2, CANVAS_H * 0.65);
 }
 
-// ==================== GAME LOGIC ====================
-
+// ==================== GAME RESET / LEVEL SETUP ====================
 function resetGame() {
-  // Reset all game variables to their initial state here
-
   // Player
   playerX = 100;
   playerY = 300;
 
-  // Mechanic 1
+  // Objective + memory
   objective = "Collect " + starsNeeded + " stars";
   showObjective = true;
-  memoryTimer = 300;
+  memoryTimer = 999999; // keep visible during phase 0
 
-  // Mechanic 2
+  // Overload
   overload = 0;
 
-  // Stars
-  stars = [];
-  for (let i = 0; i < starsNeeded; i++) {
-    stars.push({
-      x: random(200, 740),
-      y: random(80, 520),
-      size: 15,
-    });
-  }
+  // Level phase
+  levelPhase = 0;
+
+  // Respawns
+  respawnsLeft = 3;
+
+  // Calm zone position (later in the level feel)
+  calmX = 650;
+  calmY = 320;
+  calmSize = 120;
+
+  // Checkpoints (start + mid + near calm zone)
+  checkpoints = [
+    { x: 100, y: 300, label: "Start" },
+    { x: 380, y: 300, label: "Mid" },
+    { x: 620, y: 320, label: "Near Calm Zone" },
+  ];
+  checkpointIndex = 0;
+  checkpointJustReached = false;
+  checkpointToastTimer = 0;
+
+  // Stars: intentionally placed to “teach then combine”
+  // - 2 easy near start (tutorial)
+  // - 1 mid (forces some travel, starts memory)
+  // - 2 far near calm zone (combined with overload)
+  stars = [
+    { x: 180, y: 240, size: 15 },
+    { x: 220, y: 360, size: 15 },
+    { x: 420, y: 160, size: 15 },
+    { x: 610, y: 190, size: 15 },
+    { x: 730, y: 420, size: 15 },
+  ];
 
   gameState = STATE_START;
 }
 
+// ==================== UPDATE ====================
 function updateGame() {
   // -------- PLAYER MOVEMENT --------
-  if (keyIsDown(LEFT_ARROW)) playerX -= 3;
-  if (keyIsDown(RIGHT_ARROW)) playerX += 3;
-  if (keyIsDown(UP_ARROW)) playerY -= 3;
-  if (keyIsDown(DOWN_ARROW)) playerY += 3;
+  if (keyIsDown(LEFT_ARROW)) playerX -= playerSpeed;
+  if (keyIsDown(RIGHT_ARROW)) playerX += playerSpeed;
+  if (keyIsDown(UP_ARROW)) playerY -= playerSpeed;
+  if (keyIsDown(DOWN_ARROW)) playerY += playerSpeed;
 
   playerX = constrain(playerX, 0, CANVAS_W);
   playerY = constrain(playerY, 0, CANVAS_H);
 
-  // -------- Mechanic 1: MEMORY FADE --------
-  memoryTimer -= 1;
-  if (memoryTimer <= 0) {
-    showObjective = false;
+  // -------- LEVEL PROGRESSION (teach -> combine) --------
+  // Phase transitions based on stars collected
+  // Phase 0: collect 2 stars without pressure
+  if (levelPhase === 0 && starsCollected() >= 2) {
+    levelPhase = 1;
+    // Start memory fade
+    showObjective = true;
+    memoryTimer = 240; // ~4 seconds
+    // Checkpoint after learning the goal
+    setCheckpoint(1);
   }
 
-  // -------- Mechanic 2: OVERLOAD + RECOVERY --------
-  // Overload slowly rises over time
-  overload += 0.05;
+  // Phase 1: memory fade emphasized, still low overload pressure
+  if (levelPhase === 1 && starsCollected() >= 3) {
+    levelPhase = 2;
+    // Make memory more challenging when combined
+    memoryTimer = min(memoryTimer, 180);
+    // Checkpoint before full overload pressure
+    setCheckpoint(2);
+  }
 
-  // Recover if player is in calm zone
+  // -------- MECHANIC 1: MEMORY FADE --------
+  if (levelPhase >= 1) {
+    memoryTimer -= 1;
+    if (memoryTimer <= 0) {
+      showObjective = false; // fade/lose clarity
+    }
+  } else {
+    // Tutorial: keep objective visible
+    showObjective = true;
+  }
+
+  // -------- MECHANIC 2: OVERLOAD + RECOVERY --------
+  // Overload rate changes per phase
+  let overloadRate = 0;
+  if (levelPhase === 0) overloadRate = 0; // teach movement + collecting
+  if (levelPhase === 1) overloadRate = 0.02; // gentle pressure
+  if (levelPhase === 2) overloadRate = 0.07; // real pressure (combined)
+
+  overload += overloadRate;
+
+  // Recover if player in calm zone
   let dCalm = dist(playerX, playerY, calmX, calmY);
-  if (dCalm < calmSize / 2) {
-    overload -= 0.8;
+  let inCalm = dCalm < calmSize / 2;
+
+  if (inCalm) {
+    // faster recovery in combined phase
+    overload -= (levelPhase === 2 ? 1.1 : 0.8);
   }
 
   overload = constrain(overload, 0, overloadMax);
 
-  // -------- Collect stars --------
+  // -------- COLLECT STARS --------
   for (let i = stars.length - 1; i >= 0; i--) {
     let s = stars[i];
     let dStar = dist(playerX, playerY, s.x, s.y);
-    if (dStar < (playerSize / 2) + (s.size / 2) + 6) {
+    if (dStar < playerSize / 2 + s.size / 2 + 6) {
       stars.splice(i, 1);
+
+      // Small reward: briefly show objective again when collecting (helps first-time players)
+      if (levelPhase >= 1) {
+        showObjective = true;
+        memoryTimer = max(memoryTimer, 90); // ~1.5 seconds minimum
+      }
     }
   }
+
+  // -------- CHECKPOINT TOAST TIMER --------
+  if (checkpointToastTimer > 0) checkpointToastTimer--;
 }
 
+// ==================== WIN / LOSE ====================
 function checkWinCondition() {
-  // Define when the player wins
   if (stars.length === 0) {
     gameState = STATE_WIN;
   }
 }
 
-function checkLoseCondition() {
-  // Define when the player loses
+// Instead of immediate game over, allow respawn at last checkpoint a few times
+function checkLoseOrRespawn() {
   if (overload >= overloadMax) {
-    gameState = STATE_LOSE;
+    if (respawnsLeft > 0) {
+      respawnsLeft--;
+
+      // Respawn at last checkpoint, reduce overload so they can continue
+      respawnAtCheckpoint();
+
+      // Make it feel like a “recovery moment”
+      overload = 55; // not zero, still challenging
+
+      // Briefly show objective to reduce confusion after respawn
+      showObjective = true;
+      memoryTimer = 150;
+    } else {
+      gameState = STATE_LOSE;
+    }
   }
 }
 
-// ==================== DRAW HELPERS ====================
+function respawnAtCheckpoint() {
+  let cp = checkpoints[checkpointIndex];
+  playerX = cp.x;
+  playerY = cp.y;
+}
 
+// ==================== CHECKPOINT HELPERS ====================
+function setCheckpoint(newIndex) {
+  if (newIndex <= checkpointIndex) return; // never go backwards
+  checkpointIndex = newIndex;
+  checkpointJustReached = true;
+  checkpointToastTimer = 140; // ~2.3 seconds
+}
+
+// ==================== DRAW ====================
 function drawLevel() {
-  // Optional: light overlay when overload is high (simple, no trig)
-  if (overload > 60) {
-    fill(255, 255, 255, 30);
+  // Simple “overload haze” when high
+  if (overload > 65) {
+    fill(255, 255, 255, map(overload, 65, 100, 10, 55));
     rectMode(CORNER);
     rect(0, 0, CANVAS_W, CANVAS_H);
   }
 
-  // Calm Zone
-  rectMode(CENTER);
-  noStroke();
-  fill(100, 200, 200);
-  rect(calmX, calmY, calmSize, calmSize, 10);
+  // Calm Zone (with stronger visual when important)
+  drawCalmZone();
 
-  fill(0);
-  textSize(12);
-  text("Calm Zone", calmX, calmY);
+  // Checkpoint marker (subtle)
+  drawCheckpointMarker();
 
   // Stars
   noStroke();
@@ -249,8 +354,62 @@ function drawLevel() {
   fill(255);
   ellipse(playerX, playerY, playerSize, playerSize);
 
-  // Objective text (Memory Fade)
+  // Goal / Objective UI
+  drawObjectiveUI();
+
+  // Overload UI + hints
+  drawOverloadBar();
+
+  // Checkpoint toast
+  drawCheckpointToast();
+}
+
+function drawCalmZone() {
+  rectMode(CENTER);
+  noStroke();
+
+  // Pulse a bit in combined phase so players understand it's important
+  let pulse = 0;
+  if (levelPhase === 2) pulse = sin(frameCount * 0.08) * 6;
+
+  fill(100, 200, 200);
+  rect(calmX, calmY, calmSize + pulse, calmSize + pulse, 12);
+
+  // Border
+  noFill();
+  stroke(220);
+  strokeWeight(2);
+  rect(calmX, calmY, calmSize + pulse + 10, calmSize + pulse + 10, 14);
+  noStroke();
+
+  fill(0);
+  textSize(12);
+  text("Calm Zone", calmX, calmY);
+
+  // If player is inside, show explicit feedback
+  let dCalm = dist(playerX, playerY, calmX, calmY);
+  if (dCalm < calmSize / 2) {
+    fill(180, 255, 220);
+    textSize(12);
+    text("Recovering…", calmX, calmY + 20);
+  }
+}
+
+function drawCheckpointMarker() {
+  // draw a small marker for the CURRENT checkpoint (helps explain “checkpoint” concept)
+  let cp = checkpoints[checkpointIndex];
+  fill(255, 255, 255, 40);
+  ellipse(cp.x, cp.y, 34, 34);
+
+  fill(255, 255, 255, 70);
+  textSize(10);
+  text("CP", cp.x, cp.y);
+}
+
+function drawObjectiveUI() {
   textAlign(CENTER, CENTER);
+
+  // Objective line (Memory Fade)
   if (showObjective) {
     fill(255);
     textSize(18);
@@ -262,8 +421,35 @@ function drawLevel() {
     text(objective, CANVAS_W / 2, 28);
   }
 
-  // Overload meter
-  drawOverloadBar();
+  // Phase-based tutorial prompt (clear goals for first-time players)
+  textSize(12);
+  fill(220);
+
+  if (levelPhase === 0) {
+    text("Collect the nearby stars to learn the goal.", CANVAS_W / 2, 52);
+  } else if (levelPhase === 1) {
+    text("Forgot the goal? Press M to recall it.", CANVAS_W / 2, 52);
+  } else if (levelPhase === 2) {
+    text("Manage overload: reach the Calm Zone if it gets too high.", CANVAS_W / 2, 52);
+  }
+
+  // Reset align
+  textAlign(CENTER, CENTER);
+}
+
+function drawCheckpointToast() {
+  if (checkpointToastTimer > 0) {
+    let cp = checkpoints[checkpointIndex];
+    let alpha = map(checkpointToastTimer, 140, 0, 220, 0);
+
+    fill(0, alpha * 0.6);
+    rectMode(CENTER);
+    rect(CANVAS_W / 2, CANVAS_H - 70, 240, 34, 8);
+
+    fill(255, alpha);
+    textSize(14);
+    text("Checkpoint reached: " + cp.label, CANVAS_W / 2, CANVAS_H - 70);
+  }
 }
 
 function drawOverloadBar() {
@@ -277,27 +463,31 @@ function drawOverloadBar() {
   rectMode(CORNER);
   noStroke();
   fill(200);
-  rect(20, 75, 120, 12);
+  rect(20, 75, 140, 12);
 
   // Filled amount
-  // (overload goes 0..100, bar width is 120)
-  let w = map(overload, 0, overloadMax, 0, 120);
+  let w = map(overload, 0, overloadMax, 0, 140);
   fill(255, 80, 80);
   rect(20, 75, w, 12);
 
-  // Small hint when in calm zone
-  let dCalm = dist(playerX, playerY, calmX, calmY);
-  if (dCalm < calmSize / 2) {
-    fill(180, 255, 220);
-    textSize(12);
-    text("Recovering…", 20, 98);
-  } else if (overload > 85) {
+  // Warnings / clarity
+  if (overload > 85) {
     fill(255, 200, 200);
     textSize(12);
     text("Too much input!", 20, 98);
+  } else if (levelPhase >= 1) {
+    fill(220);
+    textSize(12);
+    text("Use Calm Zone to recover.", 20, 98);
   }
 
-  // Controls hint
+  // Respawns UI
+  textAlign(LEFT, CENTER);
+  fill(220);
+  textSize(12);
+  text("Respawns left: " + respawnsLeft, 20, 118);
+
+  // Controls hint (always visible)
   textAlign(RIGHT, CENTER);
   fill(220);
   textSize(12);
@@ -308,28 +498,25 @@ function drawOverloadBar() {
 }
 
 // ==================== INPUT HANDLING ====================
-
 function keyPressed() {
   if (keyCode === ENTER) {
     if (gameState === STATE_START || gameState === STATE_WIN || gameState === STATE_LOSE) {
       gameState = STATE_PLAY;
       resetGame();
-      gameState = STATE_PLAY; // resetGame sets to START, so override
+      gameState = STATE_PLAY; // resetGame sets START, so override
     }
   }
 
   if (gameState === STATE_PLAY && (key === "m" || key === "M")) {
+    // Recall objective briefly
     showObjective = true;
-    memoryTimer = 120; // show again briefly (~2 seconds)
+
+    // The later the phase, the shorter the recall (harder)
+    if (levelPhase === 1) memoryTimer = 120;
+    if (levelPhase === 2) memoryTimer = 90;
   }
-
-  // Add gameplay key controls here (e.g., movement, actions)
-}
-
-function keyReleased() {
-  // Handle key release events if needed
 }
 
 function mousePressed() {
-  // Handle mouse click events if needed
+  // optional
 }
