@@ -19,7 +19,6 @@ const CANVAS_W = 800;
 const CANVAS_H = 600;
 
 // ==================== GAME VARIABLES ====================
-// (Kevin) Simple playable loop so mechanics are testable
 
 // Player
 let playerX = 100;
