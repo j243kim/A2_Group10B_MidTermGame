@@ -15,7 +15,7 @@
 |--------|-------------|-------------|-------------------|
 | Jimin Kim | Project Setup / Core Game Loop | [Shadow role] | Set up project structure, initialized GitHub repository, implemented core game state machine (start/play/win/lose) |
 | Kaiyang Sun | TBI Mechanics Design & Implementation | Gameplay Systems | Implemented Memory Fade and Sensory Overload mechanics, integrated them into the game loop, and added player movement and win/lose conditions. |
-| [Member 3] | [Role] | [Shadow role] | [Contributions] |
+| Catarina Jin | Level Design | Gameplay Testing | Designed the playable level structure, positioned stars and the Calm Zone to guide player progression, added checkpoints and respawn logic, and conducted playtesting to identify areas where players became confused or stuck. |
 | [Member 4] | [Role] | [Shadow role] | [Contributions] |
 | [Member 3] | [Role] | [Shadow role] | [Contributions] |
 | [Member 4] | [Role] | [Shadow role] | [Contributions] |
@@ -68,6 +68,32 @@ If the overload meter increases too quickly, players may lose before understandi
 Similarly, the Memory Fade mechanic allows players to recall the objective at any time by pressing a key. This ensures that the mechanic creates a temporary challenge without preventing progress entirely.
 
 
+### 2.7 Level Design and Player Progression
+
+The level was designed to gradually introduce the mechanics before combining them into a single challenge.
+
+The layout intentionally guides the player from the left side of the screen toward the right side, where the Calm Zone is located. Early stars are placed near the starting position so players can easily understand the goal of collecting stars. This functions as a tutorial phase where players can learn the basic interaction without pressure from the overload mechanic.
+
+After players collect the first few stars, the remaining stars are positioned farther across the map. This encourages players to explore the space while dealing with the Memory Fade mechanic, which hides the objective after a short time. Players can recall the objective using the **M key**, reinforcing the idea that remembering instructions requires active effort.
+
+In the final part of the level, players must manage both mechanics simultaneously. The overload meter continues increasing while players search for the remaining stars. The Calm Zone near the end of the level acts as a recovery space that allows players to reduce overload and continue playing.
+
+This level progression structure was chosen to help first-time players understand the mechanics step-by-step before facing the full challenge of managing memory and sensory overload at the same time.
+
+
+### 2.8 Playtesting Observations
+
+During informal playtesting sessions, several usability issues were identified.
+
+First, some players did not immediately notice the Calm Zone or understand that it reduced the overload meter. To address this, the Calm Zone was visually emphasized with a distinct color and label so that players could more easily recognize it as a safe area.
+
+Second, several players forgot the objective after the Memory Fade mechanic removed the text from the screen. Although the **M key** allowed players to recall the objective, some players did not notice the instruction at first. To improve clarity, a reminder message was added near the bottom of the screen.
+
+Third, players occasionally lost the game quickly because the overload meter increased faster than they expected. To make the experience more fair for first-time players, a limited respawn system was added so that players could continue from a checkpoint instead of immediately restarting the game.
+
+These playtesting observations helped refine the level design so that the mechanics remain challenging but understandable.
+
+
 *[Add further design decisions as the game develops — e.g., mechanic choices, visual direction, how TBI is represented.]*
 
 ---
@@ -114,6 +140,16 @@ Similarly, the Memory Fade mechanic allows players to recall the objective at an
 | **How GenAI Was Used** | ChatGPT helped identify where different parts of the mechanics should be placed in the code structure. Variables were placed in the `GAME VARIABLES` section, initialization logic in `resetGame()`, updates in `updateGame()`, and rendering in `drawPlayScreen()`. |
 | **What Was Modified After Generation** | The structure was adapted slightly to fit the code that had already been created earlier in the project by another group member. |
 
+### 3.5 Task: Level Design and Gameplay Balance
+
+| Field | Details |
+|------|---------|
+| **GenAI Tool Used** | ChatGPT (OpenAI GPT-5) |
+| **Date** | March 4, 2026 |
+| **Task Description** | Designing the level structure and improving gameplay clarity. |
+| **How GenAI Was Used** | ChatGPT was used to brainstorm ways to structure the level so that players learn the mechanics gradually before experiencing the full challenge. It also suggested adding checkpoints and clearer prompts to help first-time players complete the level. |
+| **What Was Modified After Generation** | The level layout and star positions were adjusted manually to better match the game's mechanics and playtesting feedback. |
+
 ---
 
 ---
@@ -143,6 +179,21 @@ Similarly, the Memory Fade mechanic allows players to recall the objective at an
 
 **ChatGPT:**
 > Provided simplified logic using basic variables, timers, conditional statements, and distance checks to implement the mechanics using beginner-level p5.js code.
+
+**User (Catarina):**
+> Our group already implemented the mechanics for a p5.js game about Traumatic Brain Injury. My role is the Level Designer. I need to design a level that teaches the mechanics first and then combines them so that first-time players can understand how the game works. What level structure would work for this?
+
+**ChatGPT:**
+> Suggested dividing the level into three phases.
+Phase 1 introduces the objective and basic movement by placing a few stars close to the player so they can learn the goal without pressure.
+Phase 2 introduces the Memory Fade mechanic, where the objective disappears after a short time and players can press a key to recall it.
+Phase 3 combines both mechanics by placing the remaining stars farther away while the overload meter continues increasing.
+
+**User (Catarina):**
+> I also need to make sure players do not get stuck or lose too quickly during playtesting. What design changes could help make the level easier to understand?
+
+**ChatGPT:**
+> Recommended adding visual cues and recovery systems to help first-time players.
 
 ---
 
