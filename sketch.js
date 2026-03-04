@@ -318,7 +318,6 @@ function keyPressed() {
     }
   }
 
-  // Kevin Mechanic 1: Recall objective
   if (gameState === STATE_PLAY && (key === "m" || key === "M")) {
     showObjective = true;
     memoryTimer = 120; // show again briefly (~2 seconds)
