@@ -5,6 +5,11 @@
  * Mechanics:
  * - Memory Fade (objective disappears; press M to recall briefly)
  * - Sensory Overload + Calm Zone (overload rises; recover in calm zone)
+ *
+ * Design Notes:
+ * - Designed with TBI accessibility in mind: reduced visual noise, calm colors,
+ *   plain language, clear hierarchy.
+ * - Low sensory mode reduces pulsing, motion and visual effects.
  */
 
 // ==================== GAME STATES ====================
@@ -59,9 +64,20 @@ let checkpointToastTimer = 0;
 // Limited respawns before true Game Over (for fairness)
 let respawnsLeft = 3;
 
+// Low sensory mode for Accessibility
+let lowSensoryMode = false;
+
 // Small helper: stars collected count
 function starsCollected() {
   return starsNeeded - stars.length;
+}
+
+// Draw a rounded semi-transparent panel
+function drawPanel(x, y, w, h, r) {
+  noStroke();
+  fill(20, 22, 44, 200);
+  rectMode(CORNER);
+  rect(x, y, w, h, r || 8);
 }
 
 // ==================== p5 SETUP/DRAW ====================
@@ -91,24 +107,49 @@ function draw() {
 
 // ==================== SCREENS ====================
 function drawStartScreen() {
-  background(30, 30, 60);
+  background(28, 30, 55);
 
-  fill(255);
+  //ubtle static background dots (low visual noise)
+  if (!lowSensoryMode) {
+    for (let i = 0; i < 30; i++) {
+      let bx = (i * 137 + 20) % CANVAS_W;
+      let by = (i * 89 + 40) % CANVAS_H;
+      fill(255, 255, 255, 12);
+      noStroke();
+      ellipse(bx, by, 3, 3);
+    }
+  }
+
+  fill(255, 215, 90); // near-white
   textSize(40);
-  text("TBI Game", CANVAS_W / 2, CANVAS_H / 3);
+  textStyle(BOLD);
+  text("TBI GAME: Collect the Stars ★", CANVAS_W / 2, CANVAS_H / 3);
 
   textSize(18);
-  fill(200);
-  text("A game about Traumatic Brain Injury", CANVAS_W / 2, CANVAS_H / 3 + 50);
+  fill(160, 160, 180);
+  text(
+    "A accessible game for Traumatic Brain Injury",
+    CANVAS_W / 2,
+    CANVAS_H / 3 + 50,
+  );
 
   textSize(14);
-  fill(200);
-  text("Move: Arrow keys | Recall objective: M", CANVAS_W / 2, CANVAS_H / 3 + 85);
-  text("Stand in Calm Zone to recover overload", CANVAS_W / 2, CANVAS_H / 3 + 105);
+  fill(230, 230, 240);
+  text("Arrow keys -> Move", CANVAS_W / 2, CANVAS_H / 3 + 85);
+  text("M -> Recall objective", CANVAS_W / 2, CANVAS_H / 3 + 105);
+  text("Calm Zone -> Reduce overload", CANVAS_W / 2, CANVAS_H / 3 + 125);
+
+  textSize(14);
+  fill(160, 160, 180);
+  text(
+    "**Press L anytime to toggle Low Sensory Mode",
+    CANVAS_W / 2,
+    CANVAS_H / 3 + 145,
+  );
 
   textSize(20);
   fill(255);
-  text("Press ENTER to Start", CANVAS_W / 2, CANVAS_H * 0.65);
+  text("Press ENTER to START!", CANVAS_W / 2, CANVAS_H * 0.7);
 }
 
 function drawPlayScreen() {
@@ -262,7 +303,7 @@ function updateGame() {
 
   if (inCalm) {
     // faster recovery in combined phase
-    overload -= (levelPhase === 2 ? 1.1 : 0.8);
+    overload -= levelPhase === 2 ? 1.1 : 0.8;
   }
 
   overload = constrain(overload, 0, overloadMax);
@@ -331,7 +372,7 @@ function setCheckpoint(newIndex) {
 // ==================== DRAW ====================
 function drawLevel() {
   // Simple “overload haze” when high
-  if (overload > 65) {
+  if (overload > 65 && !lowSensoryMode) {
     fill(255, 255, 255, map(overload, 65, 100, 10, 55));
     rectMode(CORNER);
     rect(0, 0, CANVAS_W, CANVAS_H);
@@ -362,6 +403,9 @@ function drawLevel() {
 
   // Checkpoint toast
   drawCheckpointToast();
+
+  // Controls hint
+  drawControlHints();
 }
 
 function drawCalmZone() {
@@ -370,7 +414,9 @@ function drawCalmZone() {
 
   // Pulse a bit in combined phase so players understand it's important
   let pulse = 0;
-  if (levelPhase === 2) pulse = sin(frameCount * 0.08) * 6;
+  if (levelPhase === 2 && !lowSensoryMode) {
+    pulse = sin(frameCount * 0.08) * 6;
+  }
 
   fill(100, 200, 200);
   rect(calmX, calmY, calmSize + pulse, calmSize + pulse, 12);
@@ -430,7 +476,11 @@ function drawObjectiveUI() {
   } else if (levelPhase === 1) {
     text("Forgot the goal? Press M to recall it.", CANVAS_W / 2, 52);
   } else if (levelPhase === 2) {
-    text("Manage overload: reach the Calm Zone if it gets too high.", CANVAS_W / 2, 52);
+    text(
+      "Manage overload: reach the Calm Zone if it gets too high.",
+      CANVAS_W / 2,
+      52,
+    );
   }
 
   // Reset align
@@ -478,7 +528,7 @@ function drawOverloadBar() {
   } else if (levelPhase >= 1) {
     fill(220);
     textSize(12);
-    text("Use Calm Zone to recover.", 20, 98);
+    text("Go to Calm Zone for recovery.", 20, 98);
   }
 
   // Respawns UI
@@ -487,20 +537,30 @@ function drawOverloadBar() {
   textSize(12);
   text("Respawns left: " + respawnsLeft, 20, 118);
 
-  // Controls hint (always visible)
-  textAlign(RIGHT, CENTER);
-  fill(220);
-  textSize(12);
-  text("Press M to recall objective", CANVAS_W - 20, CANVAS_H - 18);
-
   // Reset align
   textAlign(CENTER, CENTER);
 }
 
+function drawControlHints() {
+  drawPanel(0, CANVAS_H - 40, CANVAS_W, 40, 0);
+  textAlign(CENTER, CENTER);
+  textSize(12);
+  fill(160, 160, 180);
+  text(
+    "Arrow keys -> Move | M -> Recall objective | L -> Low Sensory Mode" +
+      (lowSensoryMode ? " [LOW SENSORY ON] " : ""),
+    CANVAS_W / 2,
+    CANVAS_H - 20,
+  );
+}
 // ==================== INPUT HANDLING ====================
 function keyPressed() {
   if (keyCode === ENTER) {
-    if (gameState === STATE_START || gameState === STATE_WIN || gameState === STATE_LOSE) {
+    if (
+      gameState === STATE_START ||
+      gameState === STATE_WIN ||
+      gameState === STATE_LOSE
+    ) {
       gameState = STATE_PLAY;
       resetGame();
       gameState = STATE_PLAY; // resetGame sets START, so override
@@ -514,6 +574,10 @@ function keyPressed() {
     // The later the phase, the shorter the recall (harder)
     if (levelPhase === 1) memoryTimer = 120;
     if (levelPhase === 2) memoryTimer = 90;
+  }
+
+  if (key === "l" || key === "L") {
+    lowSensoryMode = !lowSensoryMode;
   }
 }
 

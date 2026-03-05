@@ -1,16 +1,28 @@
-html, body {
+/* style.css */
+
+html,
+body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #1a1a2e;
+  background-color: #1c1e37;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  font-family:
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 #game-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  /* Drop shadow so users can focus on display better */
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  overflow: hidden;
 }
