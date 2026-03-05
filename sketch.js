@@ -84,7 +84,7 @@ function playTone(freq, dur, type, vol) {
 function playCollectSound() {
   playTone(523.25, 0.12, "sine", 0.15);
   setTimeout(() => playTone(659.25, 0.12, "sine", 0.12), 80);
-  setTimeout(() => playTone(783.99, 0.18, "sine", 0.10), 160);
+  setTimeout(() => playTone(783.99, 0.18, "sine", 0.1), 160);
 }
 
 function playRecallSound() {
@@ -413,8 +413,7 @@ function drawStartScreen() {
   textSize(11);
   fill(130, 130, 150);
   text(
-    "Press L for Low Sensory Mode" +
-      (lowSensoryMode ? "  [ON]" : ""),
+    "Press L for Low Sensory Mode" + (lowSensoryMode ? "  [ON]" : ""),
     CANVAS_W / 2,
     500,
   );
@@ -479,7 +478,7 @@ function drawWinScreen() {
     noStroke();
     for (let i = 0; i < 20; i++) {
       let px = (frameCount * 0.5 + i * 41) % CANVAS_W;
-      let py = (sin(frameCount * 0.02 + i) * 80) + CANVAS_H / 2;
+      let py = sin(frameCount * 0.02 + i) * 80 + CANVAS_H / 2;
       fill(255, 215, 90, 30);
       ellipse(px, py, 5, 5);
     }
@@ -498,11 +497,7 @@ function drawWinScreen() {
   // Empathy message (not pity) [5]
   textSize(13);
   fill(180, 200, 185);
-  text(
-    "You managed the overload and completed the task.",
-    CANVAS_W / 2,
-    290,
-  );
+  text("You managed the overload and completed the task.", CANVAS_W / 2, 290);
   text(
     "For many TBI survivors, this kind of effort is part of every day.",
     CANVAS_W / 2,
@@ -578,13 +573,13 @@ function updateGame() {
   if (levelPhase === 0 && starsCollected() >= 2) {
     levelPhase = 1;
     showObjective = true;
-    memoryTimer = 240;
+    memoryTimer = 150;
     setCheckpoint(1);
   }
   // Phase 1: memory fade active, gentle overload
   if (levelPhase === 1 && starsCollected() >= 3) {
     levelPhase = 2;
-    memoryTimer = min(memoryTimer, 180);
+    memoryTimer = min(memoryTimer, 120);
     setCheckpoint(2);
   }
 
@@ -654,7 +649,7 @@ function updateGame() {
       // Brief memory refresh on collect
       if (levelPhase >= 1) {
         showObjective = true;
-        memoryTimer = max(memoryTimer, 90);
+        memoryTimer = max(memoryTimer, 60);
       }
     }
   }
@@ -680,7 +675,7 @@ function checkLoseOrRespawn() {
       respawnAtCheckpoint();
       overload = 50;
       showObjective = true;
-      memoryTimer = 150;
+      memoryTimer = 90;
       playRespawnSound();
     } else {
       gameState = STATE_LOSE;
@@ -879,42 +874,20 @@ function drawCalmZone() {
   noStroke();
 
   let cz = calmZone;
-
-  if (lowSensoryMode) {
-    // Low sensory: flat solid rectangle, no glow/pulse/inner pattern [4]
-    fill(70, 160, 160);
-    rect(cz.x, cz.y, cz.w, cz.h, 6);
-
-    // Simple border
-    noFill();
-    stroke(180, 220, 220);
-    strokeWeight(2);
-    rect(cz.x - 1, cz.y - 1, cz.w + 2, cz.h + 2, 7);
-    noStroke();
-
-    fill(220, 255, 245);
-    textSize(11);
-    textStyle(BOLD);
-    text("Calm Zone", cz.x + cz.w / 2, cz.y + cz.h / 2 - 1);
-    textStyle(NORMAL);
-
-    if (inRect(playerX, playerY, cz.x, cz.y, cz.w, cz.h)) {
-      fill(180, 255, 220);
-      textSize(10);
-      text("Recovering...", cz.x + cz.w / 2, cz.y + cz.h / 2 + 10);
-    }
-    return;
-  }
-
-  // Normal mode: glow, pulse, inner pattern
   let pulse = 0;
-  if (levelPhase === 2) {
+  if (levelPhase === 2 && !lowSensoryMode) {
     pulse = sin(frameCount * 0.07) * 4;
   }
 
   // Glow
   fill(80, 190, 190, 20);
-  rect(cz.x - 8 - pulse, cz.y - 8 - pulse, cz.w + 16 + pulse * 2, cz.h + 16 + pulse * 2, 14);
+  rect(
+    cz.x - 8 - pulse,
+    cz.y - 8 - pulse,
+    cz.w + 16 + pulse * 2,
+    cz.h + 16 + pulse * 2,
+    14,
+  );
 
   // Zone
   fill(70, 170, 170, 180);
@@ -1009,7 +982,7 @@ function drawPlayer() {
 
     // teeth lines
     line(px - 2.5, py - 3.4 - mouthUp, px - 2.5, py - 0.6 - mouthUp);
-    line(px,       py - 3.4 - mouthUp, px,       py - 0.6 - mouthUp);
+    line(px, py - 3.4 - mouthUp, px, py - 0.6 - mouthUp);
     line(px + 2.5, py - 3.4 - mouthUp, px + 2.5, py - 0.6 - mouthUp);
 
     // eyebrows sharper
@@ -1021,7 +994,6 @@ function drawPlayer() {
   }
 
   noStroke();
-  
 }
 
 function drawCheckpointMarker() {
@@ -1100,11 +1072,7 @@ function drawHUD() {
   if (levelPhase === 0) {
     text("Collect the nearby stars to learn the goal.", CANVAS_W / 2, 42);
   } else if (levelPhase === 1) {
-    text(
-      "Objective fading... Press M to recall it.",
-      CANVAS_W / 2,
-      42,
-    );
+    text("Objective fading... Press M to recall it.", CANVAS_W / 2, 42);
   } else if (levelPhase === 2) {
     text(
       "Manage overload — reach the Calm Zone if it gets high.",
@@ -1195,11 +1163,7 @@ function drawCheckpointToast() {
 
     fill(180, 255, 220, alpha);
     textSize(13);
-    text(
-      "Checkpoint: " + cp.label,
-      CANVAS_W / 2,
-      PLAY_BOTTOM - 30,
-    );
+    text("Checkpoint: " + cp.label, CANVAS_W / 2, PLAY_BOTTOM - 30);
     rectMode(CORNER);
   }
 }
@@ -1225,8 +1189,8 @@ function keyPressed() {
   // Memory recall [1][2] — keyCode 77 = M
   if (gameState === STATE_PLAY && keyCode === 77) {
     showObjective = true;
-    if (levelPhase === 1) memoryTimer = 120;
-    if (levelPhase === 2) memoryTimer = 90;
+    if (levelPhase === 1) memoryTimer = 75;
+    if (levelPhase === 2) memoryTimer = 50;
     playRecallSound();
   }
 
@@ -1234,9 +1198,4 @@ function keyPressed() {
   if (keyCode === 76) {
     lowSensoryMode = !lowSensoryMode;
   }
-}
-
-function mousePressed() {
-  // Unlock audio on mouse click (browser autoplay policy)
-  initAudio();
 }
