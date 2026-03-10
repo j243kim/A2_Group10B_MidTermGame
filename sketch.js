@@ -104,7 +104,7 @@ let titlePulseOsc = null;
 let titlePulseGain = null;
 let titlePulseLfo = null;
 let titlePulseLfoGain = null;
-let titleActive = true;
+let titleActive = false;
 let titleAmbientMode = "title";
 
 const TITLE_AMBIENT_LEVELS = {
