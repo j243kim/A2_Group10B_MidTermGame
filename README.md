@@ -102,16 +102,11 @@ Low Sensory Mode changes include:
 
 ### Post-Showcase (Iteration Notes)
 
-The following feedback was collected from peers and the instructor during the in-class showcase. Each point is paired with a planned or completed response.
-
-1. **"Too easy to play":** Observers felt the overall difficulty was too low. In response, overload growth rates were increased across all stages, calm zone recovery was reduced, and star placement was spread further apart so players must navigate through more hazard zones to complete each stage.
-2. **"Colour wise too blue and merges with each other":** The visual palette lacked contrast, making walls, zones, and decorations blend together. Floor tile tints, wall colours, and zone fills were adjusted per stage to improve colour separation and readability.
-3. **"More context about the disability needed":** Observers wanted clearer communication of what TBI is and how the mechanics relate to it. The title screen was redesigned with TBI-themed background visuals (neural pathways, thought fragments, head silhouette, fading awareness particles), and the How to Play overlay was kept accessible from the start so players can read the connection between mechanics and lived experience before playing.
-4. **"Overload can fill up faster":** Overload base growth and noise zone multipliers were tuned upward so pressure builds more noticeably, especially in Stages 2 and 3.
-5. **"Star distribution can be more difficult":** Task markers were repositioned so they require longer routes through stimulus zones and tighter navigation, rather than being clustered near safe areas.
-6. **"Implementing TBI feelings and emotions in the game":** Emotional frustration messages were added at high overload levels (e.g., "This should be simple.", "Why is this so hard?") to represent the internal emotional cost of routine tasks after TBI. The win and lose screens were also rewritten to include reflective language rather than generic success/failure text.
-7. **"We are showcasing for someone with TBI — they are not playing the actual game":** The game is designed for non-disabled players to experience cognitive and sensory strain through interaction, not for people with TBI to relive their own difficulties. Low Sensory Mode was expanded and clearly labelled so that if someone with TBI does observe or try the game, visual intensity can be reduced. The framing throughout (HUD text, end screens, frustration messages) was reviewed to ensure it communicates effort and respect rather than pity or spectacle.
-8. **"Making obstacles and enemies / creating more complete levels":** Solid decorations (beds, desks, counters, shelves, hedges) were added as physical obstacles that block movement, increasing navigation complexity. The three-stage structure was retained rather than adding enemies, since the design goal is to represent cognitive difficulty rather than combat.
+- Use WSAD keys instead of arrow keys.
+- Add more visuals to the game and the player character.
+- Make the obstacles move and relate the obstacles to the real-world obstacles that TBI people might face instead of labelling as "noise".
+- Change the mechanic to show the disconnected behaviour and the movement of the player.
+- Instead of displaying the entire map, zoomed in map can be more challenging to play.
 
 ## Assets
 
@@ -148,8 +143,8 @@ All sound is generated procedurally with the Web Audio API using oscillators and
 
 ## References
 
-1. Bogost, I. 2007. *Persuasive Games: The Expressive Power of Videogames*. MIT Press, Cambridge, MA.
-2. Centers for Disease Control and Prevention. 2024. Get the Facts About TBI. *Centers for Disease Control and Prevention*. Retrieved March 9, 2026 from https://www.cdc.gov/traumatic-brain-injury/data-research/facts-stats/
-3. Game Accessibility Guidelines. 2012. *Game Accessibility Guidelines*. Retrieved March 9, 2026 from https://gameaccessibilityguidelines.com/
-4. Johansson, B., Berglund, P., and Ronnback, L. 2009. Mental fatigue and impaired information processing after mild and moderate traumatic brain injury. *Brain Injury* 23, 13-14, 1027-1040.
-5. Lew, H.L., Poole, J.H., Guillory, S.B., Salerno, R.M., Leskin, G., and Sigford, B. 2006. Persistent problems after traumatic brain injury: The need for long-term follow-up and coordinated care. *Journal of Rehabilitation Research and Development* 43, 2, 199-212.
+1. Bogost, I. 2007. _Persuasive Games: The Expressive Power of Videogames_. MIT Press, Cambridge, MA.
+2. Centers for Disease Control and Prevention. 2024. Get the Facts About TBI. _Centers for Disease Control and Prevention_. Retrieved March 9, 2026 from https://www.cdc.gov/traumatic-brain-injury/data-research/facts-stats/
+3. Game Accessibility Guidelines. 2012. _Game Accessibility Guidelines_. Retrieved March 9, 2026 from https://gameaccessibilityguidelines.com/
+4. Johansson, B., Berglund, P., and Ronnback, L. 2009. Mental fatigue and impaired information processing after mild and moderate traumatic brain injury. _Brain Injury_ 23, 13-14, 1027-1040.
+5. Lew, H.L., Poole, J.H., Guillory, S.B., Salerno, R.M., Leskin, G., and Sigford, B. 2006. Persistent problems after traumatic brain injury: The need for long-term follow-up and coordinated care. _Journal of Rehabilitation Research and Development_ 43, 2, 199-212.
