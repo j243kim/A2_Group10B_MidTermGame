@@ -102,11 +102,13 @@ Low Sensory Mode changes include:
 
 ### Post-Showcase (Iteration Notes)
 
-- Use WSAD keys instead of arrow keys.
-- Add more visuals to the game and the player character.
-- Make the obstacles move and relate the obstacles to the real-world obstacles that TBI people might face instead of labelling as "noise".
-- Change the mechanic to show the disconnected behaviour and the movement of the player.
-- Instead of displaying the entire map, zoomed in map can be more challenging to play.
+The following feedback was collected from peers and the instructor during the in-class Mid-Term Showcase. Each point is listed with a planned improvement for future iterations.
+
+1. **"Use WASD keys instead of arrow keys":** Players found arrow keys less intuitive. A planned improvement is to add WASD as an alternative control scheme alongside the existing arrow keys so players can choose whichever feels more comfortable.
+2. **"Add more visuals to the game and the player character":** The current procedural art style is minimal. A planned improvement is to add more detailed character animations (e.g., a walking cycle, visible fatigue posture changes) and richer environmental visuals such as background details and more varied decoration art to make the stages feel more alive.
+3. **"Make the obstacles move and relate to real-world TBI obstacles instead of labelling as noise":** The static red "noise" zones feel abstract. A planned improvement is to replace generic noise labels with context-specific environmental stressors (e.g., crowds, traffic, flickering lights, loud conversations) and introduce moving obstacles that represent unpredictable real-world stimuli that TBI survivors must navigate.
+4. **"Change the mechanic to show disconnected behaviour and movement of the player":** The current movement system stays mostly consistent. A planned improvement is to introduce moments of input delay or involuntary drift at high overload levels to represent the disconnection between intention and action that TBI survivors often experience.
+5. **"Instead of displaying the entire map, use a zoomed-in camera for more challenge":** Showing the full stage reduces navigational difficulty. A planned improvement is to implement a camera system that follows the player and only reveals the nearby area, forcing players to rely on memory and spatial awareness rather than seeing all objectives at once — directly reinforcing the Memory Fade mechanic.
 
 ## Assets
 
